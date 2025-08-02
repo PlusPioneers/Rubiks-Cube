@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Solver with AI Next Move</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧩 Rubik's Cube Solver with AI Next Move</h1>
+        </header>
+
+        <main>
+            <div class="solver-container">
+                <!-- Cube Configuration Section -->
+                <section class="cube-config">
+                    <h2>🎯 Configure Your Cube Colors</h2>
+                    
+                    <!-- 3D Cube Net Display -->
+                    <div class="cube-net">
+                        <!-- Top Face (White) -->
+                        <div class="face top-face" data-face="U">
+                            <div class="face-label">Top (U)</div>
+                            <div class="face-grid">
+                                <div class="square" data-pos="U1"></div>
+                                <div class="square" data-pos="U2"></div>
+                                <div class="square" data-pos="U3"></div>
+                                <div class="square" data-pos="U4"></div>
+                                <div class="square center" data-pos="U5"></div>
+                                <div class="square" data-pos="U6"></div>
+                                <div class="square" data-pos="U7"></div>
+                                <div class="square" data-pos="U8"></div>
+                                <div class="square" data-pos="U9"></div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Row: Left, Front, Right, Back -->
+                        <div class="middle-row">
+                            <div class="face left-face" data-face="L">
+                                <div class="face-label">Left (L)</div>
+                                <div class="face-grid">
+                                    <div class="square" data-pos="L1"></div>
+                                    <div class="square" data-pos="L2"></div>
+                                    <div class="square" data-pos="L3"></div>
+                                    <div class="square" data-pos="L4"></div>
+                                    <div class="square center" data-pos="L5"></div>
+                                    <div class="square" data-pos="L6"></div>
+                                    <div class="square" data-pos="L7"></div>
+                                    <div class="square" data-pos="L8"></div>
+                                    <div class="square" data-pos="L9"></div>
+                                </div>
+                            </div>
+
+                            <div class="face front-face" data-face="F">
+                                <div class="face-label">Front (F)</div>
+                                <div class="face-grid">
+                                    <div class="square" data-pos="F1"></div>
+                                    <div class="square" data-pos="F2"></div>
+                                    <div class="square" data-pos="F3"></div>
+                                    <div class="square" data-pos="F4"></div>
+                                    <div class="square center" data-pos="F5"></div>
+                                    <div class="square" data-pos="F6"></div>
+                                    <div class="square" data-pos="F7"></div>
+                                    <div class="square" data-pos="F8"></div>
+                                    <div class="square" data-pos="F9"></div>
+                                </div>
+                            </div>
+
+                            <div class="face right-face" data-face="R">
+                                <div class="face-label">Right (R)</div>
+                                <div class="face-grid">
+                                    <div class="square" data-pos="R1"></div>
+                                    <div class="square" data-pos="R2"></div>
+                                    <div class="square" data-pos="R3"></div>
+                                    <div class="square" data-pos="R4"></div>
+                                    <div class="square center" data-pos="R5"></div>
+                                    <div class="square" data-pos="R6"></div>
+                                    <div class="square" data-pos="R7"></div>
+                                    <div class="square" data-pos="R8"></div>
+                                    <div class="square" data-pos="R9"></div>
+                                </div>
+                            </div>
+
+                            <div class="face back-face" data-face="B">
+                                <div class="face-label">Back (B)</div>
+                                <div class="face-grid">
+                                    <div class="square" data-pos="B1"></div>
+                                    <div class="square" data-pos="B2"></div>
+                                    <div class="square" data-pos="B3"></div>
+                                    <div class="square" data-pos="B4"></div>
+                                    <div class="square center" data-pos="B5"></div>
+                                    <div class="square" data-pos="B6"></div>
+                                    <div class="square" data-pos="B7"></div>
+                                    <div class="square" data-pos="B8"></div>
+                                    <div class="square" data-pos="B9"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Face (Yellow) -->
+                        <div class="face bottom-face" data-face="D">
+                            <div class="face-label">Bottom (D)</div>
+                            <div class="face-grid">
+                                <div class="square" data-pos="D1"></div>
+                                <div class="square" data-pos="D2"></div>
+                                <div class="square" data-pos="D3"></div>
+                                <div class="square" data-pos="D4"></div>
+                                <div class="square center" data-pos="D5"></div>
+                                <div class="square" data-pos="D6"></div>
+                                <div class="square" data-pos="D7"></div>
+                                <div class="square" data-pos="D8"></div>
+                                <div class="square" data-pos="D9"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Color Palette and Controls -->
+                <section class="controls-section">
+                    <div class="color-palette">
+                        <h3>🎨 Color Palette</h3>
+                        <div class="color-options">
+                            <div class="color-option white" data-color="white" title="White"></div>
+                            <div class="color-option red" data-color="red" title="Red"></div>
+                            <div class="color-option blue" data-color="blue" title="Blue"></div>
+                            <div class="color-option orange" data-color="orange" title="Orange"></div>
+                            <div class="color-option green" data-color="green" title="Green"></div>
+                            <div class="color-option yellow" data-color="yellow" title="Yellow"></div>
+                        </div>
+                        <div class="selected-color">
+                            <span>Selected: </span>
+                            <div class="current-color white"></div>
+                            <span id="color-name">White</span>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <h3>🎮 Controls</h3>
+                        <button id="solve-btn" class="btn primary">🚀 Start Solving</button>
+                        <button id="reset-btn" class="btn secondary">🔄 Reset Cube</button>
+                        <button id="scramble-btn" class="btn secondary">🎲 Scramble</button>
+                        <button id="set-solved-btn" class="btn success">✅ Set Solved</button>
+                    </div>
+                </section>
+
+                <!-- Solution Display -->
+                <section class="solution-section" id="solution-section" style="display: none;">
+                    <h2>🤖 AI Solution Steps</h2>
+                    <div class="solution-info">
+                        <div class="move-counter">
+                            <span>Move <span id="current-move">1</span> of <span id="total-moves">0</span></span>
+                        </div>
+                        <div class="current-move-display">
+                            <div class="move-notation" id="move-notation">R</div>
+                            <div class="move-description" id="move-description">Turn the Right face clockwise 90°</div>
+                        </div>
+                        <div class="solution-controls">
+                            <button id="prev-btn" class="btn secondary" disabled>⬅️ Previous</button>
+                            <button id="next-btn" class="btn primary">➡️ Next</button>
+                            <button id="auto-play-btn" class="btn success">⏯️ Auto Play</button>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </section>
+
+                <!-- Status and Messages -->
+                <section class="status-section">
+                    <div id="status-message" class="status-message">
+                        Configure your cube colors and click "Start Solving" to get the next move.
+                    </div>
+                    <div id="error-message" class="error-message" style="display: none;"></div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Face Reference Guide -->
+        <div class="reference-guide">
+            <h3>🔍 Face Reference Guide</h3>
+            <div class="notation-guide">
+                <span><strong>U:</strong> Up (White)</span>
+                <span><strong>F:</strong> Front (Red)</span>
+                <span><strong>R:</strong> Right (Blue)</span>
+                <span><strong>B:</strong> Back (Orange)</span>
+                <span><strong>L:</strong> Left (Green)</span>
+                <span><strong>D:</strong> Down (Yellow)</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="kociemba.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
