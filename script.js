@@ -1,7 +1,6 @@
 /**
  * Main script for Rubik's Cube Solver with AI Next Move
  */
-
 class RubiksCubeApp {
     constructor() {
         this.solver = new KociembaSolver();
@@ -11,7 +10,6 @@ class RubiksCubeApp {
         this.currentMoveIndex = 0;
         this.autoPlayInterval = null;
         this.isAutoPlaying = false;
-        
         this.initializeCube();
         this.setupEventListeners();
         this.initializeUI();
@@ -21,13 +19,11 @@ class RubiksCubeApp {
         // Initialize with solved cube
         const faces = ['U', 'F', 'R', 'B', 'L', 'D'];
         const colors = ['white', 'red', 'blue', 'orange', 'green', 'yellow'];
-        
         faces.forEach((face, faceIndex) => {
             for (let i = 1; i <= 9; i++) {
                 this.cube[face + i] = colors[faceIndex];
             }
         });
-        
         this.updateCubeDisplay();
     }
 
@@ -75,6 +71,14 @@ class RubiksCubeApp {
         document.getElementById('auto-play-btn').addEventListener('click', () => {
             this.toggleAutoPlay();
         });
+
+        // Add cancel button listener if you create one
+        const cancelBtn = document.getElementById('cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.cancelSolving();
+            });
+        }
     }
 
     initializeUI() {
@@ -84,12 +88,10 @@ class RubiksCubeApp {
 
     selectColor(color) {
         this.currentColor = color;
-        
         // Update UI
         document.querySelectorAll('.color-option').forEach(option => {
             option.classList.remove('selected');
         });
-        
         document.querySelector(`.color-option.${color}`).classList.add('selected');
         document.querySelector('.current-color').className = `current-color ${color}`;
         document.getElementById('color-name').textContent = color.charAt(0).toUpperCase() + color.slice(1);
@@ -98,7 +100,6 @@ class RubiksCubeApp {
     paintSquare(position) {
         // Don't allow painting center squares
         if (position.endsWith('5')) return;
-        
         this.cube[position] = this.currentColor;
         this.updateSquareDisplay(position);
         this.hideError();
@@ -117,13 +118,12 @@ class RubiksCubeApp {
         });
     }
 
-    solveCube() {
+    // **UPDATED ASYNC SOLVE METHOD**
+    async solveCube() {
         this.showLoading('Analyzing cube configuration...');
         
-        // Small delay to show loading animation
-        setTimeout(() => {
-            const result = this.solver.solve(this.cube);
-            
+        try {
+            const result = await this.solver.solve(this.cube);
             this.hideLoading();
             
             if (result.success) {
@@ -131,7 +131,6 @@ class RubiksCubeApp {
                 this.currentMoveIndex = 0;
                 this.showSolution();
                 this.updateStatus(result.message);
-                
                 if (result.moves.length === 0) {
                     this.updateStatus('Cube is already solved! 🎉');
                 } else {
@@ -141,16 +140,25 @@ class RubiksCubeApp {
                 this.showError(result.message);
                 this.updateStatus('Failed to solve cube. Please check your configuration.');
             }
-        }, 500);
+        } catch (error) {
+            this.hideLoading();
+            this.showError('Solver encountered an error: ' + error.message);
+            this.updateStatus('Failed to solve cube due to an error.');
+        }
+    }
+
+    // **NEW METHOD - CANCEL SOLVING**
+    cancelSolving() {
+        this.hideLoading();
+        this.hideSolution();
+        this.updateStatus('Solving cancelled by user.');
     }
 
     showSolution() {
         const solutionSection = document.getElementById('solution-section');
         solutionSection.style.display = 'block';
         solutionSection.classList.add('fade-in');
-        
         document.getElementById('total-moves').textContent = this.solutionMoves.length;
-        
         this.updateNavigationButtons();
         this.updateProgressBar();
     }
@@ -195,8 +203,8 @@ class RubiksCubeApp {
 
     updateProgressBar() {
         const progressFill = document.getElementById('progress-fill');
-        const progress = this.solutionMoves.length > 0 
-            ? ((this.currentMoveIndex + 1) / this.solutionMoves.length) * 100 
+        const progress = this.solutionMoves.length > 0
+            ? ((this.currentMoveIndex + 1) / this.solutionMoves.length) * 100
             : 0;
         progressFill.style.width = `${progress}%`;
     }
@@ -261,7 +269,6 @@ class RubiksCubeApp {
 
     scrambleCube() {
         this.showLoading('Scrambling cube...');
-        
         setTimeout(() => {
             this.cube = this.solver.scrambleCube();
             this.updateCubeDisplay();
@@ -291,19 +298,31 @@ class RubiksCubeApp {
         this.hideError();
     }
 
-    // Utility methods for UI feedback
+    // **UPDATED UTILITY METHODS FOR UI FEEDBACK**
     showLoading(message) {
         const solveBtn = document.getElementById('solve-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        
         solveBtn.textContent = '⏳ ' + message;
         solveBtn.disabled = true;
         solveBtn.classList.add('loading');
+        
+        if (cancelBtn) {
+            cancelBtn.style.display = 'inline-block';
+        }
     }
 
     hideLoading() {
         const solveBtn = document.getElementById('solve-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        
         solveBtn.textContent = '🚀 Start Solving';
         solveBtn.disabled = false;
         solveBtn.classList.remove('loading');
+        
+        if (cancelBtn) {
+            cancelBtn.style.display = 'none';
+        }
     }
 
     updateStatus(message) {
@@ -316,7 +335,6 @@ class RubiksCubeApp {
         const errorElement = document.getElementById('error-message');
         errorElement.textContent = message;
         errorElement.style.display = 'block';
-        
         // Add shake animation
         errorElement.classList.add('shake');
         setTimeout(() => errorElement.classList.remove('shake'), 500);
@@ -404,6 +422,58 @@ class RubiksCubeApp {
         });
         return distribution;
     }
+
+    // **NEW METHOD - SOLVE WITH PROGRESS CALLBACK**
+    async solveCubeWithProgress() {
+        this.showLoading('Analyzing cube configuration...');
+        
+        try {
+            const validation = this.solver.validateCube(this.cube);
+            if (!validation.valid) {
+                throw new Error(validation.error);
+            }
+
+            let currentState = this.solver.cubeToState(this.cube);
+            if (this.solver.isSolved(currentState)) {
+                this.hideLoading();
+                this.updateStatus('Cube is already solved! 🎉');
+                return;
+            }
+
+            // Use the progress version of the solver
+            const solution = await new Promise((resolve) => {
+                setTimeout(() => {
+                    const result = this.solver.findSolutionWithProgress(
+                        currentState, 
+                        12, 
+                        (progressMessage) => {
+                            // Update loading message with progress
+                            const solveBtn = document.getElementById('solve-btn');
+                            solveBtn.textContent = '⏳ ' + progressMessage;
+                        }
+                    );
+                    resolve(result);
+                }, 50);
+            });
+
+            this.hideLoading();
+            
+            if (solution.length > 0) {
+                this.solutionMoves = solution;
+                this.currentMoveIndex = 0;
+                this.showSolution();
+                this.updateStatus(`Solution found in ${solution.length} moves!`);
+                this.displayCurrentMove();
+            } else {
+                this.showError('Could not find a solution in reasonable time');
+                this.updateStatus('Failed to solve cube. Please try a different configuration.');
+            }
+        } catch (error) {
+            this.hideLoading();
+            this.showError('Solver encountered an error: ' + error.message);
+            this.updateStatus('Failed to solve cube due to an error.');
+        }
+    }
 }
 
 // Initialize the application when DOM is loaded
@@ -415,9 +485,11 @@ document.addEventListener('DOMContentLoaded', () => {
         exportState: () => window.cubeApp.exportCubeState(),
         importState: (data) => window.cubeApp.importCubeState(data),
         getStats: () => window.cubeApp.getCubeStats(),
-        validateCube: () => window.cubeApp.validateCubeConfiguration()
+        validateCube: () => window.cubeApp.validateCubeConfiguration(),
+        solveWithProgress: () => window.cubeApp.solveCubeWithProgress()
     };
     
     console.log('🧩 Rubik\'s Cube Solver initialized!');
     console.log('Debug utilities available at window.debugCube');
+    console.log('Try: window.debugCube.solveWithProgress() for detailed solving');
 });
